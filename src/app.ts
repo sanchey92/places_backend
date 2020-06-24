@@ -3,14 +3,15 @@ import {json} from 'body-parser';
 import dotenv from 'dotenv';
 
 import placesRoutes from './routes/places';
-import usersRoutes from './routes/users';
+import {errorHandler} from "./middleware/errorMiddleware";
 
 dotenv.config()
 const app = express()
 app.use(json())
 
 app.use('/api/places', placesRoutes);
-app.use('/api/users', usersRoutes);
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000;
 
