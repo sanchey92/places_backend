@@ -28,3 +28,17 @@ export const getPlaceByUserId: RequestHandler = async (req, res, next) => {
   if (!place) return next(new HttpError('Could not find a place for the provided userId', 404))
   res.json({place})
 }
+
+export const postCreatePlace: RequestHandler = async (req, res, next) => {
+  const {title, description, coordinates, address, creator} = req.body
+
+  const createdPlace = {
+    id: Math.random().toString(),
+    title,
+    description,
+    location: coordinates,
+    address,
+    creator
+  }
+  TEST_DATA.push(createdPlace)
+}

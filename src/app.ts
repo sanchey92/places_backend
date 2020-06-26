@@ -1,9 +1,9 @@
 import express from 'express';
-import {json} from 'body-parser';
 import dotenv from 'dotenv';
+import {errorHandler} from "./middleware/errorMiddleware";
+import {json} from 'body-parser';
 
 import placesRoutes from './routes/places';
-import {errorHandler} from "./middleware/errorMiddleware";
 
 dotenv.config()
 const app = express()
