@@ -1,7 +1,7 @@
 import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
 
-export const TEST_DATA = [
+export let TEST_DATA = [
   {
     id: 'p1',
     title: 'Empire State Building',
@@ -41,4 +41,26 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
     creator
   }
   TEST_DATA.push(createdPlace)
+}
+
+export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
+  const placeId = req.params.pid;
+  const {title, description} = req.body;
+
+  const updatedPlace: any = {... await TEST_DATA.find((el: any) => el.id === placeId)};
+  const placeIndex = await TEST_DATA.findIndex((el: any) => el.id === placeId);
+
+  updatedPlace.title = title;
+  updatedPlace.description = description;
+
+  TEST_DATA[placeIndex] = updatedPlace;
+
+  res.status(200).json({place: updatedPlace})
+
+}
+
+export const deletePlace: RequestHandler = async (req, res, next) => {
+  const placeId = req.params.pid;
+  TEST_DATA = TEST_DATA.filter((el: any) => el.id !== placeId);
+  res.status(200).json({message: 'Deleted place'})
 }
