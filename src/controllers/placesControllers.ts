@@ -1,5 +1,6 @@
 import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
+import {validationResult} from 'express-validator'
 
 export let TEST_DATA = [
   {
@@ -30,6 +31,10 @@ export const getPlaceByUserId: RequestHandler = async (req, res, next) => {
 }
 
 export const postCreatePlace: RequestHandler = async (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) throw new HttpError('Invalid input passed, please check your date', 422)
+
   const {title, description, coordinates, address, creator} = req.body
 
   const createdPlace = {
@@ -44,10 +49,13 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
 }
 
 export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) throw new HttpError('Invalid input passed, please check your date', 422)
+
   const placeId = req.params.pid;
   const {title, description} = req.body;
 
-  const updatedPlace: any = {... await TEST_DATA.find((el: any) => el.id === placeId)};
+  const updatedPlace: any = {...await TEST_DATA.find((el: any) => el.id === placeId)};
   const placeIndex = await TEST_DATA.findIndex((el: any) => el.id === placeId);
 
   updatedPlace.title = title;

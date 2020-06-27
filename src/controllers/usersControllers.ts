@@ -1,5 +1,6 @@
 import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
+import {validationResult} from 'express-validator'
 
 const TEST_USER = [
   {
@@ -15,6 +16,10 @@ export const getUsers : RequestHandler = async (req, res) => {
 }
 
 export const postSignUp: RequestHandler = async (req, res) => {
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) throw new HttpError('Invalid data, please try again', 422)
+
   const {name, email, password} = req.body;
   const hasUser = TEST_USER.find((el: any) => el.email === email);
 
@@ -27,6 +32,8 @@ export const postSignUp: RequestHandler = async (req, res) => {
 }
 
 export const postLogin: RequestHandler = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) throw new HttpError('Invalid data, please try again', 422)
   const {email, password} = req.body;
 
   const identifiedUser = TEST_USER.find ((el: any) => el.email === email );
