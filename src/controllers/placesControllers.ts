@@ -1,6 +1,7 @@
 import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
 import {validationResult} from 'express-validator'
+import {getCoordsForAddress} from "../utils/googleLocation";
 
 export let TEST_DATA = [
   {
@@ -35,7 +36,15 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
 
   if (!errors.isEmpty()) throw new HttpError('Invalid input passed, please check your date', 422)
 
-  const {title, description, coordinates, address, creator} = req.body
+  const {title, description, address, creator} = req.body;
+
+  let coordinates;
+
+  try {
+    coordinates = await getCoordsForAddress(address);
+  } catch (error) {
+    return  next(error)
+  }
 
   const createdPlace = {
     id: Math.random().toString(),
@@ -46,6 +55,8 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
     creator
   }
   TEST_DATA.push(createdPlace)
+
+  res.json({createdPlace})
 }
 
 export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
