@@ -2,6 +2,7 @@ import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
 import {validationResult} from 'express-validator'
 import {getCoordsForAddress} from "../utils/googleLocation";
+import Place, {IPlaceSchema} from '../models/Place';
 
 export let TEST_DATA = [
   {
@@ -43,18 +44,24 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
   try {
     coordinates = await getCoordsForAddress(address);
   } catch (error) {
-    return  next(error)
+    return next(error)
   }
 
-  const createdPlace = {
-    id: Math.random().toString(),
+  const createdPlace = new Place({
     title,
     description,
-    location: coordinates,
     address,
+    location: coordinates,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg',
     creator
+  })
+
+  try {
+    await createdPlace.save()
+  } catch (error) {
+    const err =  new HttpError('Creating place failed, try again!', 500);
+    return next(err)
   }
-  TEST_DATA.push(createdPlace)
 
   res.json({createdPlace})
 }

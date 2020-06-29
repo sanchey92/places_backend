@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import HttpError from "./models/HttpError";
 import {errorHandler} from "./middleware/errorMiddleware";
 import {json} from 'body-parser';
+import {connect} from "mongoose";
 
 import placesRoutes from './routes/places';
 import userRoutes from './routes/users';
@@ -23,5 +24,20 @@ app.use((req, res, next) => {
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000;
+const MONGODB_KEY = process.env.MONGODB_KEY;
+const URL = `mongodb+srv://alexandr:${MONGODB_KEY}@cluster0-neyyj.mongodb.net/places?retryWrites=true&w=majority`
 
-app.listen(PORT, () => console.log(`server started on localhost:${PORT}`))
+const start = async () => {
+  try {
+    await connect(URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true
+    })
+    app.listen(PORT)
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+start().then(() => console.log('server started'))
