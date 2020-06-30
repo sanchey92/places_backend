@@ -3,6 +3,7 @@ import HttpError from "../models/HttpError";
 import {validationResult} from 'express-validator'
 import {getCoordsForAddress} from "../utils/googleLocation";
 import Place, {IPlaceSchema} from '../models/Place';
+import User from "../models/User";
 
 export const getPlaceById: RequestHandler = async (req, res, next) => {
   const placeId = req.params.pid;
@@ -38,7 +39,7 @@ export const getPlaceByUserId: RequestHandler = async (req, res, next) => {
 
 export const postCreatePlace: RequestHandler = async (req, res, next) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) throw new HttpError('Invalid input passed, please check your date', 422)
+  if (!errors.isEmpty()) next(new HttpError('Invalid input passed, please check your date', 422))
 
   const {title, description, address, creator} = req.body;
   let coordinates;
@@ -71,7 +72,7 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
 export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
 
   const errors = validationResult(req);
-  if (!errors.isEmpty()) throw new HttpError('Invalid input passed, please check your date', 422)
+  if (!errors.isEmpty()) next(new HttpError('Invalid input passed, please check your date', 422))
 
   const placeId = req.params.pid;
   const {title, description} = req.body;

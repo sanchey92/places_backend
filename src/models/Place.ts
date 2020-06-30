@@ -1,4 +1,4 @@
-import {Schema, model, Document} from "mongoose";
+import {Schema, model, Document, Types} from "mongoose";
 
 export type CoordinatesType =  {
   lat: number,
@@ -11,7 +11,7 @@ export interface IPlaceSchema extends Document {
   image: string,
   address: string,
   location: CoordinatesType,
-  creator: string
+  creator: Types.ObjectId
 }
 
 const placeSchema = new Schema({
@@ -23,7 +23,7 @@ const placeSchema = new Schema({
     lat: {type: Number, required: true},
     lng: {type: Number, required: true},
   },
-  creator: {type: String, required: true}
+  creator: {type: Types.ObjectId, required: true, ref: 'User'}
 })
 
 export default model<IPlaceSchema>('Place', placeSchema);
