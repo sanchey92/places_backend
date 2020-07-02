@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {Request, Response, NextFunction} from 'express';
 import dotenv from 'dotenv';
 import HttpError from "./models/HttpError";
 import {errorHandler} from "./middleware/errorMiddleware";
@@ -14,10 +14,20 @@ const app = express()
 
 app.use(json())
 
-app.use('/api/places', placesRoutes);
-app.use('/api/users', userRoutes);
+app.use((req:  Request, res: Response, next: NextFunction) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  )
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE')
+  next()
+})
 
-app.use((req, res, next) => {
+app.use('/api/places', placesRoutes)
+app.use('/api/users', userRoutes)
+
+app.use((req: Request, res: Response, next: NextFunction) => {
   throw  new HttpError('Could not find this route', 404)
 })
 

@@ -135,7 +135,7 @@ export const deletePlace: RequestHandler = async (req, res, next) => {
     await place!.creator.save({session: sess})
     await sess.commitTransaction()
   } catch (e) {
-    return next(new HttpError('Something went wrong, olease try again later', 404))
+    return next(new HttpError('Something went wrong, please try again later', 404))
   }
 
   res.status(200).json({message: 'Deleted place'})
