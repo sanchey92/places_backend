@@ -11,7 +11,7 @@ export interface IPlaceSchema extends Document {
   image: string,
   address: string,
   location: CoordinatesType,
-  creator: Types.ObjectId
+  creator: Types.ObjectId | any
 }
 
 const placeSchema = new Schema({

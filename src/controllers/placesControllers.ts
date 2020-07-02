@@ -2,12 +2,13 @@ import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
 import {validationResult} from 'express-validator'
 import {getCoordsForAddress} from "../utils/googleLocation";
-import Place, {IPlaceSchema} from '../models/Place';
-import User from "../models/User";
+import {ClientSession, startSession} from "mongoose";
+import Place, {CoordinatesType, IPlaceSchema} from '../models/Place';
+import User, {IUser} from "../models/User";
 
 export const getPlaceById: RequestHandler = async (req, res, next) => {
   const placeId = req.params.pid;
-  let place;
+  let place: IPlaceSchema | null;
 
   try {
     place = await Place.findById(placeId)
@@ -22,19 +23,19 @@ export const getPlaceById: RequestHandler = async (req, res, next) => {
 
 export const getPlaceByUserId: RequestHandler = async (req, res, next) => {
   const userId = req.params.uid;
-  let place;
+  let userWithPlaces: IPlaceSchema | null
 
   try {
-    place = await Place.find({creator: userId})
+    userWithPlaces = await Place.findById(userId).populate('places')
   } catch (e) {
     return next(new HttpError('Something went wrong, could not find a place', 500))
   }
-
-  if (!place || place.length === 0) {
+  // @ts-ignore
+  if (!userWithPlaces || userWithPlaces.places.length === 0) {
     return next(new HttpError('Could not find a place for the provided userId', 404))
   }
-
-  res.json({place: place.map((el: IPlaceSchema) => el.toObject({getters: true}) )});
+  // @ts-ignore
+  res.json({place: userWithPlaces.places.map((el: IPlaceSchema) => el.toObject({getters: true}))});
 }
 
 export const postCreatePlace: RequestHandler = async (req, res, next) => {
@@ -42,7 +43,7 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
   if (!errors.isEmpty()) next(new HttpError('Invalid input passed, please check your date', 422))
 
   const {title, description, address, creator} = req.body;
-  let coordinates;
+  let coordinates: CoordinatesType | null;
 
   try {
     coordinates = await getCoordsForAddress(address);
@@ -59,8 +60,23 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
     creator
   })
 
+  let user: IUser | null;
+
   try {
-    await createdPlace.save()
+    user = await User.findById(creator)
+  } catch (e) {
+    return next(new HttpError('Creating place failed, please try again', 500))
+  }
+
+  if (!user) next(new HttpError('User not found, please try again!', 500))
+
+  try {
+    const sess: ClientSession = await startSession();
+    sess.startTransaction();
+    await createdPlace.save({session: sess})
+    user!.places.push(createdPlace)
+    await user!.save({session: sess})
+    await sess.commitTransaction()
   } catch (error) {
     const err = new HttpError('Creating place failed, try again!', 500);
     return next(err)
@@ -76,7 +92,7 @@ export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
 
   const placeId = req.params.pid;
   const {title, description} = req.body;
-  let place;
+  let place: IPlaceSchema | null;
 
   try {
     place = await Place.findById(placeId);
@@ -90,7 +106,7 @@ export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
   try {
     await place!.save()
   } catch (e) {
-    return  next(new HttpError('Something went wrong, try again later', 422))
+    return next(new HttpError('Something went wrong, try again later', 422))
   }
 
   res.status(200).json({place: place!.toObject({getters: true})})
@@ -100,11 +116,27 @@ export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
 export const deletePlace: RequestHandler = async (req, res, next) => {
   const placeId = req.params.pid;
 
+  let place: IPlaceSchema | null;
+
   try {
-    await Place.findByIdAndDelete(placeId);
+   place = await Place.findById(placeId).populate('creator')
   } catch (e) {
     return next(new HttpError('Something went wrong, please try again later', 422))
   }
-  
+
+  if (!place) next(new HttpError('Place not found, please try again', 404));
+
+  try {
+    const sess: ClientSession = await startSession()
+    sess.startTransaction()
+    // @ts-ignore
+    await place!.remove({session: sess})
+    place!.creator.places.pull(place)
+    await place!.creator.save({session: sess})
+    await sess.commitTransaction()
+  } catch (e) {
+    return next(new HttpError('Something went wrong, olease try again later', 404))
+  }
+
   res.status(200).json({message: 'Deleted place'})
 }

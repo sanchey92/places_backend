@@ -1,7 +1,8 @@
 import axios from 'axios';
 import HttpError from "../models/HttpError";
+import {CoordinatesType} from "../models/Place";
 
-export const getCoordsForAddress = async (address: any) => {
+export const getCoordsForAddress = async (address: any): Promise<CoordinatesType> => {
 
   const api_Key = process.env.GOOGLE_API_KEY;
 
