@@ -21,17 +21,17 @@ export const postSignUp: RequestHandler = async (req, res, next) => {
   if (!errors.isEmpty()) next(new HttpError('Invalid data, please try again', 422))
 
   const {name, email, password} = req.body;
-  let existingUser: IUser | null;
+  let existingUser;
 
   try {
     existingUser = await User.findOne({email: email});
   } catch (e) {
-    return next(new HttpError('Signing up failed, please try again later', 422))
+    return next(new HttpError('Signing up failed, please try again later', 432))
   }
 
-  if (existingUser) return next(new HttpError('User exist already, please login instead', 422))
+  if (existingUser)  next(new HttpError('User exist already, please login instead', 420))
 
-  const createdUser: IUser = new User({
+  const createdUser = new User({
     name,
     email,
     image: 'https://sun1-17.userapi.com/v7AQeA7kfD5W7K5_cs2qzMl8pC6jmKSLOJTQhg/zlDnrPeDOmQ.jpg',
@@ -42,7 +42,7 @@ export const postSignUp: RequestHandler = async (req, res, next) => {
   try {
     await createdUser.save()
   } catch (e) {
-    return next(new HttpError('Signing up failed, please try again later', 422))
+    return next(new HttpError('Signing up failed, please try again later', 425))
   }
 
   res.status(200).json({user: createdUser.toObject({getters: true})});
@@ -53,7 +53,7 @@ export const postLogin: RequestHandler = async (req, res, next) => {
   if (!errors.isEmpty())  next(new HttpError('Invalid data, please try again', 422))
 
   const {email, password} = req.body;
-  let existingUser: IUser | null;
+  let existingUser;
 
   try {
     existingUser = await User.findOne({email: email})
@@ -65,5 +65,5 @@ export const postLogin: RequestHandler = async (req, res, next) => {
     return next(new HttpError('User not found, please try again', 422))
   }
 
-  res.json({message: 'Logged in'})
+  res.status(200).json({message: 'Logged in', user: existingUser.toObject({getters: true}) })
 }

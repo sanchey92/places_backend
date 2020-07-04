@@ -23,10 +23,10 @@ export const getPlaceById: RequestHandler = async (req, res, next) => {
 
 export const getPlaceByUserId: RequestHandler = async (req, res, next) => {
   const userId = req.params.uid;
-  let userWithPlaces: IPlaceSchema | null
+  let userWithPlaces;
 
   try {
-    userWithPlaces = await Place.findById(userId).populate('places')
+    userWithPlaces = await User.findById(userId).populate('places')
   } catch (e) {
     return next(new HttpError('Something went wrong, could not find a place', 500))
   }
@@ -35,7 +35,7 @@ export const getPlaceByUserId: RequestHandler = async (req, res, next) => {
     return next(new HttpError('Could not find a place for the provided userId', 404))
   }
   // @ts-ignore
-  res.json({place: userWithPlaces.places.map((el: IPlaceSchema) => el.toObject({getters: true}))});
+  res.json({places: userWithPlaces.places.map(place => place.toObject({getters: true}))});
 }
 
 export const postCreatePlace: RequestHandler = async (req, res, next) => {
