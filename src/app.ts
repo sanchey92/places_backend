@@ -28,7 +28,7 @@ app.use('/api/places', placesRoutes)
 app.use('/api/users', userRoutes)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
-  throw  new HttpError('Could not find this route', 404)
+  next (new HttpError('Could not find this route', 404))
 })
 
 app.use(errorHandler)
