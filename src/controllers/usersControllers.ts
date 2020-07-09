@@ -18,6 +18,7 @@ export const getUsers: RequestHandler = async (req, res, next) => {
 export const postSignUp: RequestHandler = async (req, res, next) => {
 
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) next(new HttpError('Invalid data, please try again', 422))
 
   const {name, email, password} = req.body;
@@ -34,7 +35,7 @@ export const postSignUp: RequestHandler = async (req, res, next) => {
   const createdUser = new User({
     name,
     email,
-    image: 'https://sun1-17.userapi.com/v7AQeA7kfD5W7K5_cs2qzMl8pC6jmKSLOJTQhg/zlDnrPeDOmQ.jpg',
+    image: req.file.path,
     password,
     places: []
   })

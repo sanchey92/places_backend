@@ -1,3 +1,4 @@
+import {unlink} from 'fs';
 import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
 import {validationResult} from 'express-validator'
@@ -56,7 +57,7 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
     description,
     address,
     location: coordinates,
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg',
+    image: req.file.path,
     creator
   })
 
@@ -126,6 +127,8 @@ export const deletePlace: RequestHandler = async (req, res, next) => {
 
   if (!place) next(new HttpError('Place not found, please try again', 404));
 
+  const imagePath = place!.image;
+
   try {
     const sess: ClientSession = await startSession()
     sess.startTransaction()
@@ -137,6 +140,10 @@ export const deletePlace: RequestHandler = async (req, res, next) => {
   } catch (e) {
     return next(new HttpError('Something went wrong, please try again later', 404))
   }
+
+  unlink(imagePath, (err) => {
+    console.log(err);
+  })
 
   res.status(200).json({message: 'Deleted place'})
 }

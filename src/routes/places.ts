@@ -7,13 +7,16 @@ import {
   postCreatePlace
 } from "../controllers/placesControllers";
 import {check} from 'express-validator'
+import {fileUpload} from "../middleware/fileUploadMiddleware";
 
 const router = Router()
 
 router.get('/:pid', getPlaceById);
 router.get('/user/:uid', getPlaceByUserId);
 
-router.post('/', [
+router.post('/',
+  fileUpload.single('image'),
+  [
   check('title').not().isEmpty(),
   check('description').isLength({min: 5}),
   check('address').not().isEmpty()
