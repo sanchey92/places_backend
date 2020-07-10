@@ -5,6 +5,7 @@ import HttpError from "./models/HttpError";
 import {errorHandler} from "./middleware/errorMiddleware";
 import {json} from 'body-parser';
 import {connect} from "mongoose";
+import {corsMiddleware} from "./middleware/corsMiddleware";
 
 import placesRoutes from './routes/places';
 import userRoutes from './routes/users';
@@ -15,16 +16,7 @@ const app = express()
 
 app.use(json())
 app.use('/uploads/', express.static(path.join('uploads')))
-
-app.use((req:  Request, res: Response, next: NextFunction) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  )
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE')
-  next()
-})
+app.use(corsMiddleware)
 
 app.use('/api/places', placesRoutes)
 app.use('/api/users', userRoutes)
