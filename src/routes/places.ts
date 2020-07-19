@@ -8,11 +8,15 @@ import {
 } from "../controllers/placesControllers";
 import {check} from 'express-validator'
 import {fileUpload} from "../middleware/fileUploadMiddleware";
+import {checkAuth} from "../middleware/checkAuthMiddleware";
 
 const router = Router()
 
 router.get('/:pid', getPlaceById);
 router.get('/user/:uid', getPlaceByUserId);
+
+// @ts-ignore
+router.use(checkAuth);
 
 router.post('/',
   fileUpload.single('image'),
