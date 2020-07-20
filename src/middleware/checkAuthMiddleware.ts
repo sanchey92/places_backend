@@ -7,6 +7,7 @@ export interface Req extends Request {
 }
 
 export const checkAuth = (req: Req, res: Response, next: NextFunction) => {
+  if (req.method === 'OPTIONS') next();
 
   try {
     const token = req.headers!.authorization?.split(' ')[1];

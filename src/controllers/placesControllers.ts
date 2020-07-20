@@ -1,3 +1,4 @@
+import {Response, NextFunction} from "express";
 import {unlink} from 'fs';
 import {RequestHandler} from "express";
 import HttpError from "../models/HttpError";
@@ -6,6 +7,7 @@ import {getCoordsForAddress} from "../utils/googleLocation";
 import {ClientSession, startSession} from "mongoose";
 import Place, {CoordinatesType, IPlaceSchema} from '../models/Place';
 import User, {IUser} from "../models/User";
+import {Req} from "../middleware/checkAuthMiddleware";
 
 export const getPlaceById: RequestHandler = async (req, res, next) => {
   const placeId = req.params.pid;
@@ -86,7 +88,7 @@ export const postCreatePlace: RequestHandler = async (req, res, next) => {
   res.json({createdPlace})
 }
 
-export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
+export const patchUpdatePlace = async (req: Req, res: Response, next: NextFunction) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) next(new HttpError('Invalid input passed, please check your date', 422))
@@ -99,6 +101,11 @@ export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
     place = await Place.findById(placeId);
   } catch (e) {
     return next(new HttpError('Something went wrong, try again later', 401))
+  }
+
+  if (place!.creator.toString() !== req.userData.userId) {
+    const error = new HttpError('You are not allowed to edit this place!', 401);
+    return next(error)
   }
 
   place!.title = title;
@@ -114,7 +121,7 @@ export const patchUpdatePlace: RequestHandler = async (req, res, next) => {
 
 }
 
-export const deletePlace: RequestHandler = async (req, res, next) => {
+export const deletePlace = async (req: Req, res: Response, next: NextFunction) => {
   const placeId = req.params.pid;
 
   let place: IPlaceSchema | null;
@@ -126,6 +133,11 @@ export const deletePlace: RequestHandler = async (req, res, next) => {
   }
 
   if (!place) next(new HttpError('Place not found, please try again', 404));
+
+  if (place!.creator.id !== req.userData.userId) {
+    const error =  new HttpError('You are not allowed to delete this place', 401);
+    return next(error)
+  }
 
   const imagePath = place!.image;
 

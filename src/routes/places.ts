@@ -26,11 +26,13 @@ router.post('/',
   check('address').not().isEmpty()
   ], postCreatePlace);
 
+// @ts-ignore
 router.patch('/:pid', [
   check('title').not().isEmpty(),
   check('description').isLength({min: 5})
 ], patchUpdatePlace);
 
+// @ts-ignore
 router.delete('/:pid', deletePlace)
 
 export default router
